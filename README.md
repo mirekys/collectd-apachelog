@@ -18,7 +18,7 @@
                 Name "serverX_requests"
                 # Which time interval should be read from the Access_log at each plugin run
                 Interval 1
-                Access_log "/etc/httpd/log/ssl_access.log"
+                Access_log "/etc/httpd/logs/ssl_access.log"
                 # Whichever format does your Apache server use for the Access_log
                 Access_log_format "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %k %I %O %D" 
         </Module>
@@ -42,3 +42,10 @@ Output example:
 [2015-11-10 11:09:45.232832] serverX_requests/count-GET-status_2xx=4
 [2015-11-10 11:09:45.232924] serverX_requests/count-GET-status_3xx=0
 ```
+
+# Debugging
+
+You can run this plugin in standalone debug mode, where it outputs to console
+what would be otherwise sent to the collectd daemon:
+
+``` ./apachelog.py debug ```
