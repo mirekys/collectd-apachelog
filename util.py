@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+""" Module containing common helper functions and classes """
+
 import subprocess
+from threading import Thread
 
 # Dictionary of functions to be mapped to each key's value
 FLDMAP = {
-    'response_bytes_clf': (lambda x: str(x).replace('-','0'))
+    'response_bytes_clf': (lambda x: str(x).replace('-', '0'))
 }
 
 def remap(key, value):
@@ -15,13 +18,26 @@ def remap(key, value):
         return value
 
 
-def tac(filename):
-	""" Yields lines of the file in the reverse order """
-	proc = subprocess.Popen(['tac', filename], stdout=subprocess.PIPE)
-	while True:
-		line = proc.stdout.readline()
-		if line:
-			#the real code does filtering here
-			yield line.rstrip()
-		else:
-			break
+class LogWatch(Thread):
+    """ Thread watching a log file for appended lines """
+    def __init__(self, logfile, line_queue):
+        Thread.__init__(self)
+        self.killed = False
+        self.logfile = logfile
+        self.line_queue = line_queue
+
+
+    def run(self):
+        """ Main thread entrypoint """
+        self.tail()
+
+
+    def tail(self):
+        """ Watch for, and enqueue lines appended to a file """
+        tail = subprocess.Popen(
+            ["tail", "-f", self.logfile], stdout=subprocess.PIPE)
+        while not self.killed:
+            line = tail.stdout.readline()
+            self.line_queue.put(line)
+            if not line:
+                break
