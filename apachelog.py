@@ -33,16 +33,16 @@ class ApacheLog(object):
             key = node.key.lower()
             val = node.values[0]
 
-            if key == 'access_log':
+            if key == 'accesslog':
                 self.access_log = val
                 if not access(self.access_log, R_OK):
-                    self.err('access_log %s is not readable!' % self.access_log)
-            elif key == 'access_log_format':
+                    self.err('AccessLog %s is not readable!' % self.access_log)
+            elif key == 'accesslogformat':
                 self.access_log_format = val
                 try:
                     self.parser = make_parser(self.access_log_format)
                 except LineDoesntMatchException:
-                    self.err('Couldn\'t parse access log format: %s' % (
+                    self.err('Couldn\'t parse AccessLogFormat: %s' % (
                         self.access_log_format))
                     return
             elif key == 'name':
@@ -107,7 +107,7 @@ class ApacheLog(object):
                     self.values[method][key] = val
 
 
-    def read(self, data=None):
+    def read(self):
         """ Collectd read callback to gather metrics
             data from the access log and submit them """
         self.init()
@@ -189,8 +189,8 @@ if len(sys.argv) > 1 and sys.argv[1] == 'debug':
             self.children = []
             self.children.append(NodeMock('name', name))
             self.children.append(NodeMock('interval', intvl))
-            self.children.append(NodeMock('access_log', acclog))
-            self.children.append(NodeMock('access_log_format', acclog_fmt))
+            self.children.append(NodeMock('accesslog', acclog))
+            self.children.append(NodeMock('accesslogformat', acclog_fmt))
 
 
     from time import sleep
