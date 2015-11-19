@@ -5,6 +5,7 @@
 
 * Install the [apache-log-parser](https://github.com/rory/apache-log-parser) package
 * Clone this repo: ```git clone https://github.com/mirekys/collectd-apachelog.git```
+* Place *apachelog.py* and *util.py* to your collectd-python ModulePath
 * Update your collectd.conf
 ```
   <Plugin python>
@@ -33,14 +34,14 @@ Values are then aggregated by HTTP method and further into *bytes*, *count* and 
 
 Output example:
 ```
-[2015-11-10 11:09:45.232481] serverX_requests/count-GET=4
-[2015-11-10 11:09:45.232532] serverX_requests/count-GET-num_keepalives=3
-[2015-11-10 11:09:45.232632] serverX_requests/bytes-GET-bytes_tx=16017
-[2015-11-10 11:09:45.232878] serverX_requests/bytes-GET-bytes_rx=3679
-[2015-11-10 11:09:45.232732] serverX_requests/bytes-GET-response_bytes_clf=12614
-[2015-11-10 11:09:45.232681] serverX_requests/response_time-GET-time_us=457318
-[2015-11-10 11:09:45.232832] serverX_requests/count-GET-status_2xx=4
-[2015-11-10 11:09:45.232924] serverX_requests/count-GET-status_3xx=0
+serverX_requests/count-GET=4
+serverX_requests/count-GET-num_keepalives=3
+serverX_requests/bytes-GET-bytes_tx=16017
+serverX_requests/bytes-GET-bytes_rx=3679
+serverX_requests/bytes-GET-response_bytes_clf=12614
+serverX_requests/response_time-GET-time_us=457318
+serverX_requests/count-GET-status_2xx=4
+serverX_requests/count-GET-status_3xx=0
 ```
 
 # Debugging
