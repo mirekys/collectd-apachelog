@@ -7,22 +7,21 @@ import sys
 from os import access, R_OK
 from datetime import datetime
 from Queue import Queue, Empty
-from util import remap, LogWatch
+from util import remap, LogWatch, CollectdPlugin
 from apache_log_parser import make_parser, LineDoesntMatchException
 
 
-class ApacheLog(object):
+class ApacheLog(CollectdPlugin):
     """ Main plugin class """
 
     def __init__(self, debug=False):
         """ Initialize itself with sane defaults """
-        self.debug_mode = debug
+        super(ApacheLog, self).__init__(debug)
         self.parser = None
         self.values = {}
         self.logwatch = None
         self.interval = 1
         self.access_log = '/var/log/ssl_access.log'
-        self.plugin_name = 'http_requests'
         self.access_log_format = '%h %l %u %t \"%r\" %>s %b'
         self.line_buffer = Queue()
 
@@ -125,47 +124,6 @@ class ApacheLog(object):
                     self.submit('response_time', '%s-%s' % (method, key), val)
                 elif 'num' in key or 'status' in key:
                     self.submit('count', '%s-%s' % (method, key), val)
-
-
-    def submit(self, type, instance, value):
-        """ Send collected values to collectd """
-        if self.debug_mode:
-            print('[%s] %s/%s-%s=%s' % (
-                str(datetime.now()), self.plugin_name, type, instance, value))
-        else:
-            cval = collectd.Values()
-            cval.plugin = self.plugin_name
-            cval.type = type
-            cval.type_instance = instance
-            cval.values = [value, ]
-            try:
-                cval.dispatch()
-            except TypeError:
-                pass
-
-
-    def debug(self, message):
-        """ Log a debug message to console """
-        if self.debug_mode:
-            print('%s:DBG %s' % (self.plugin_name, message))
-
-
-    def warn(self, message):
-        """ Log a warning message """
-        fmsg = '%s:WRN %s' % (self.plugin_name, message)
-        if not self.debug_mode:
-            collectd.warning(fmsg)
-        else:
-            print(fmsg)
-
-
-    def err(self, message):
-        """ Log an error message """
-        fmsg = '%s:ERR %s' % (self.plugin_name, message)
-        if not self.debug_mode:
-            collectd.error(fmsg)
-        else:
-            print(fmsg)
 
 
     def shutdown(self):
