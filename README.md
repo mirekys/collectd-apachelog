@@ -5,7 +5,7 @@
 
 * Install the [apache-log-parser](https://github.com/rory/apache-log-parser) package
 * Clone this repo: ```git clone https://github.com/mirekys/collectd-apachelog.git```
-* Place *apachelog.py* and *util.py* to your collectd-python ModulePath
+* Place *apachelog.py* to your collectd-python ModulePath
 * Update your collectd.conf
 ```
   <Plugin python>
