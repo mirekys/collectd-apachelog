@@ -203,7 +203,7 @@ class ApacheLog(CollectdPlugin):
                 val = remap(key, val)
                 try:
                     if key == 'time_us':
-                        self.update_response_time(method, int(val)/1000)
+                        self.update_response_time(method, int(val))
                     else:
                         self.values[method][key] += int(val)
                 except TypeError:
