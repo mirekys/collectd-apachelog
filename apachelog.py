@@ -8,7 +8,10 @@ import subprocess
 from os import access, R_OK
 from threading import Thread
 from datetime import datetime
-from Queue import Queue, Empty
+try:
+    from queue import Queue, Empty
+except ImportError:
+    from Queue import Queue, Empty
 from apache_log_parser import make_parser, LineDoesntMatchException
 
 # Dictionary of functions to be mapped to each key's value
@@ -155,20 +158,32 @@ class ApacheLog(CollectdPlugin):
             self.logwatch = LogWatch(self.access_log, self.line_buffer)
             self.logwatch.start()
 
-        for key, val in self.values.iteritems():
+        for key, val in self.values.items():
             for subkey in val.keys():
                 self.values[key][subkey] = 0 if subkey != 'time_us' else []
-        self.values['response_time'] = { 'avg':[], 'min':sys.maxint, 'max':0 }
+        self.values['response_time'] = { 'avg':[], 'min':self.ourmax, 'max':0 }
 
+    def ourmax(self):
+        try:
+            return sys.maxsize
+        except AttributeError:
+            return sys.maxint
 
     def gather_metrics(self):
         """ Gather metrics data from lines queued by self.logwatch """
         read_start = datetime.now()
 
-        while (self.logwatch.isAlive() and
-               ((datetime.now()-read_start).seconds) < self.interval):
+        def is_alive():
             try:
-                line = self.line_buffer.get_nowait()
+                return self.logwatch.is_alive()
+            except AttributeError:
+                return self.logwatch.isAlive()
+
+        while (is_alive() and
+               ((datetime.now()-read_start).seconds) < self.interval):
+
+            try:
+                line = self.line_buffer.get_nowait().decode('utf-8')
             except Empty:
                 break
 
@@ -196,7 +211,7 @@ class ApacheLog(CollectdPlugin):
                 self.values[method][status] = 1
 
             # Read and save values from request
-            for key, val in request.iteritems():
+            for key, val in request.items():
                 if key == 'status':
                         continue # Status has been already processed
 
@@ -241,7 +256,7 @@ class ApacheLog(CollectdPlugin):
         # Submit response times
         rt = self.values['response_time']
         self.submit('response_time', 'avg', self.get_avg_response_time(rt['avg']))
-        self.submit('response_time', 'min', rt['min'] if rt['min'] != sys.maxint else 0)
+        self.submit('response_time', 'min', rt['min'] if rt['min'] != self.ourmax else 0)
         self.submit('response_time', 'max', rt['max'])
 
         # Submit hit counts
@@ -249,8 +264,8 @@ class ApacheLog(CollectdPlugin):
         self.submit('count', 'hits', hits)
 
         # Submit all remaining values
-        for method, data in self.values.iteritems():
-            for key, val in data.iteritems():
+        for method, data in self.values.items():
+            for key, val in data.items():
                 if 'count' in key:
                     self.submit('count', method, data['count'])
                 elif 'bytes' in key:
